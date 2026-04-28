@@ -190,6 +190,30 @@
 </footer>
 
 <script>
+function updateRiskIndicators(result) {
+  let risk, chipStyle, note;
+  
+  if (result < 80) {
+    risk = 'Low Emitter';
+    chipStyle = 'background:#E1F5EE;color:#085041;border:0.5px solid #9FE1CB';
+    note = 'This operation falls below the sector average. The high renewable share is a key contributor to lower emissions.';
+  } else if (result < 160) {
+    risk = 'Average Emitter';
+    chipStyle = 'background:#FAEEDA;color:#633806;border:0.5px solid #FAC775';
+    note = 'Emissions are within the typical sector range. Increasing renewable energy share could meaningfully reduce this estimate.';
+  } else {
+    risk = 'High Emitter';
+    chipStyle = 'background:#FCEBEB;color:#501313;border:0.5px solid #F7C1C1';
+    note = 'This exceeds sector averages. Consider energy audits, fleet electrification, or renewable energy procurement.';
+  }
+  
+  // Update the chip and text on the page
+  const riskChip = document.getElementById('riskChip');
+  const resultNote = document.getElementById('resultNote');
+  
+  if (riskChip) riskChip.innerHTML = `<span class="risk-chip" style="${chipStyle}">${risk}</span>`;
+  if (resultNote) resultNote.textContent = note;
+}
 function updateSlider(id,outId){
   document.getElementById(outId).textContent=document.getElementById(id).value;
 }
