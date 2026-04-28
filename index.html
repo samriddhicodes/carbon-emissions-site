@@ -235,11 +235,13 @@ async function predict() {
     });
 
     const data = await response.json();
+    console.log("Data received from Python:", data);
     
     if (data.status === 'success') {
       const result = data.emissions;
       
       // Update your UI elements
+      console.log("Setting resultVal to:", data.emissions);
       document.getElementById('resultVal').textContent = result.toFixed(1);
       
       // Update the progress bar scale (assumed max 250 for display)
