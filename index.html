@@ -193,33 +193,41 @@
 function updateSlider(id,outId){
   document.getElementById(outId).textContent=document.getElementById(id).value;
 }
-function predict(){
-  const energy=+document.getElementById('energy').value;
-  const fleet=+document.getElementById('fleet').value;
-  const prod=+document.getElementById('prod').value;
-  const renew=+document.getElementById('renew').value;
-  const age=+document.getElementById('age').value;
-  const base=energy*0.4+fleet*2.1+(prod/1000)*8+(100-renew)*0.5+age*1.2;
-  const result=Math.round(base*10)/10;
-  document.getElementById('resultVal').textContent=result.toFixed(1);
-  const pct=Math.min(100,Math.round((result/250)*100));
-  document.getElementById('barFill').style.width=pct+'%';
-  let risk,chipStyle,note;
-  if(result<80){
-    risk='Low Emitter';
-    chipStyle='background:#E1F5EE;color:#085041;border:0.5px solid #9FE1CB';
-    note='This operation falls below the sector average. The high renewable share is a key contributor to lower emissions.';
-  }else if(result<160){
-    risk='Average Emitter';
-    chipStyle='background:#FAEEDA;color:#633806;border:0.5px solid #FAC775';
-    note='Emissions are within the typical sector range. Increasing renewable energy share could meaningfully reduce this estimate.';
-  }else{
-    risk='High Emitter';
-    chipStyle='background:#FCEBEB;color:#501313;border:0.5px solid #F7C1C1';
-    note='This exceeds sector averages. Consider energy audits, fleet electrification, or renewable energy procurement.';
+async function predict() {
+  // Capture values from your existing HTML IDs
+  const payload = {
+    energy: document.getElementById('energy').value,
+    fleet: document.getElementById('fleet').value,
+    prod: document.getElementById('prod').value,
+    renew: document.getElementById('renew').value,
+    age: document.getElementById('age').value
+  };
+
+  try {
+    const response = await fetch('http://127.0.0.1:5000/predict', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await response.json();
+    
+    if (data.status === 'success') {
+      const result = data.emissions;
+      
+      // Update your UI elements
+      document.getElementById('resultVal').textContent = result.toFixed(1);
+      
+      // Update the progress bar scale (assumed max 250 for display)
+      const pct = Math.min(100, Math.round((result / 250) * 100));
+      document.getElementById('barFill').style.width = pct + '%';
+      
+      // Run your existing risk-level color logic
+      updateRiskIndicators(result);
+    }
+  } catch (err) {
+    console.error("Backend offline. Run 'python app.py' first.", err);
   }
-  document.getElementById('riskChip').innerHTML=`<span class="risk-chip" style="${chipStyle}">${risk}</span>`;
-  document.getElementById('resultNote').textContent=note;
 }
 function embedPBI(){
   const url=document.getElementById('pbiUrl').value.trim();
