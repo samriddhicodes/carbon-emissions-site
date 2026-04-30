@@ -119,14 +119,6 @@
 </div>
 
 <div class="input-group">
-  <div class="label-row">
-    <label>Total Population (Millions)</label>
-    <span id="prodVal">330</span>
-  </div>
-  <input type="range" id="prod" min="100" max="500" value="330" oninput="predict()">
-</div>
-
-<div class="input-group">
   <label>Select State</label>
   <select id="state" oninput="predict()" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--gray-light);">
     <option value="AL">Alabama</option>
@@ -206,17 +198,14 @@ function updateRiskIndicators(result) {
 function updateSlider(id,outId){
   document.getElementById(outId).textContent=document.getElementById(id).value;
 }
+
 async function predict() {
-  // 1. Grab the values from the new IDs
   const payload = {
-    year: document.getElementById('year').value,
-    prod: document.getElementById('prod').value,
+    year: parseInt(document.getElementById('year').value),
     state: document.getElementById('state').value
   };
 
-  // Update the UI number displays
   document.getElementById('yearVal').textContent = payload.year;
-  document.getElementById('prodVal').textContent = payload.prod;
 
   try {
     const response = await fetch('http://127.0.0.1:5000/predict', {
@@ -226,48 +215,23 @@ async function predict() {
     });
 
     const data = await response.json();
-    
-    if (data.status === 'success') {
-      // resultVal is the ID where the big number is displayed
-      document.getElementById('resultVal').textContent = data.emissions.toFixed(1);
-      
-      // Update progress bar (adjust the '500' based on your expected max emissions)
-      const pct = Math.min(100, Math.round((data.emissions / 500) * 100));
-      document.getElementById('barFill').style.width = pct + '%';
-    }
-  } catch (err) {
-    console.error("Backend connection failed.", err);
-  }
-}
-
-  try {
-    const response = await fetch('http://127.0.0.1:5000/predict', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-
-    const data = await response.json();
-    console.log("Data received from Python:", data);
     
     if (data.status === 'success') {
       const result = data.emissions;
+      document.getElementById('resultVal').textContent = result.toFixed(2);
       
-      // Update your UI elements
-      console.log("Setting resultVal to:", data.emissions);
-      document.getElementById('resultVal').textContent = result.toFixed(1);
-      
-      // Update the progress bar scale (assumed max 250 for display)
-      const pct = Math.min(100, Math.round((result / 250) * 100));
+      // Ridge models can have higher ranges; adjust the 800 divisor based on TX/CA totals
+      const pct = Math.min(100, Math.round((result / 800) * 100));
       document.getElementById('barFill').style.width = pct + '%';
       
-      // Run your existing risk-level color logic
       updateRiskIndicators(result);
     }
   } catch (err) {
-    console.error("Backend offline. Run 'python app.py' first.", err);
+    console.error("Check if your Flask server is running.", err);
   }
-}
+}  
+
+ 
 function embedPBI(){
   const url=document.getElementById('pbiUrl').value.trim();
   if(!url){return;}
